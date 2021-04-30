@@ -1,4 +1,4 @@
-envyaml~=1.7.210310
-docker~=4.4
+envyaml
+docker~=5.0
 pydantic~=1.8.1
 requests~=2.25.1
