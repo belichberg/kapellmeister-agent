@@ -1,4 +1,5 @@
 import logging
+import sentry_sdk
 from pathlib import Path
 from time import sleep
 from typing import List, Set, Tuple
@@ -18,6 +19,10 @@ log = logging.getLogger()
 
 # create env file reader
 env = EnvYAML()
+
+if not env.get("DEBUG"):
+    sentry_sdk.init(env.get("SENTRY_DSN"), traces_sample_rate=1.0)
+
 
 
 def containers_diff(actual: DockerContainer, container: Container) -> bool:
