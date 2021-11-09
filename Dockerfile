@@ -1,6 +1,7 @@
-#
-FROM python:3.8-alpine as base
+# basic image
+FROM python:3.9-slim-buster as base
 
+# buffered
 ENV PYTHONUNBUFFERED=1
 
 # Add steps for requirements
