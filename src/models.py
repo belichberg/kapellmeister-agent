@@ -14,6 +14,9 @@ class ContainerParameters(BaseModel):
     tmpfs: Optional[Dict]
     volumes: Optional[Dict]
     nano_cpus: Optional[int]
+    ports: Optional[Dict]
+    privileged: Optional[bool]
+    cap_add: Optional[List[str]]
 
 
 class Container(BaseModel):
