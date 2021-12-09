@@ -1,12 +1,13 @@
 import logging
-import sentry_sdk
 from pathlib import Path
 from time import sleep
 from typing import List, Set, Tuple
 
 import docker
-from docker.errors import DockerException
+import sentry_sdk
+from docker.errors import DockerException, APIError
 from docker.models.containers import Container as DockerContainer
+from docker.models.images import Image
 from envyaml import EnvYAML
 
 # read env.yaml config file
@@ -24,21 +25,45 @@ if not env.get("DEBUG"):
     sentry_sdk.init(env.get("SENTRY_DSN"), traces_sample_rate=1.0)
 
 
+def get_local_image_digest(client: docker.DockerClient, image: str) -> str:
+    image_digest: str = ""
 
-def containers_diff(actual: DockerContainer, container: Container) -> bool:
+    images: list[Image] = client.images.list(image)
+
+    if images and images[0].attrs["RepoDigests"]:
+        return images[0].attrs["RepoDigests"][0].split("@")[1]
+
+    return image_digest
+
+
+def get_registry_image_digest(client: docker.DockerClient, image: str) -> str:
+    image_digest: str = ""
+
+    try:
+        return client.images.get_registry_data(image).id
+
+    except APIError:
+        pass
+
+    return image_digest
+
+
+def containers_diff(client: docker.DockerClient, actual: DockerContainer, container: Container) -> bool:
+    image: str = container.parameters.image
+
     # check environment
     if any([env_ not in actual.attrs["Config"]["Env"] for env_ in container.parameters.environment]):
         return True
 
-    # check image hash
-    if actual.attrs.get("Image", "") != container.digest:
+    # check image digest with registry, if different then update
+    if get_local_image_digest(client, image) != get_registry_image_digest(client, image):
         return True
 
     return False
 
 
 def containers_check(
-    client: docker.DockerClient, containers: List[Container]
+        client: docker.DockerClient, containers: List[Container]
 ) -> Tuple[List[Container], List[Container], List[str]]:
     create: List[Container] = []
     update: List[Container] = []
@@ -69,7 +94,7 @@ def containers_check(
         for container in containers:
             if actual.name == container.slug:
                 # if update
-                if containers_diff(actual, container):
+                if containers_diff(client, actual, container):
                     update.append(container)
 
     return create, update, remove

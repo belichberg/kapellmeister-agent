@@ -1,5 +1,5 @@
 envyaml
 docker~=5.0
-pydantic~=1.8.1
-requests~=2.25.1
-sentry-sdk~=1.0
+pydantic~=1.8
+requests~=2.26
+sentry-sdk~=1.5
