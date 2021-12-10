@@ -40,6 +40,6 @@ jobs:
       -
         name: Run Buildx
         run: |
-          docker buildx build -t kapellmeister-agent:latest \
+          docker buildx build -t belichberghub/kapellmeister-agent:latest \
             --platform linux/386 \
             --push .
