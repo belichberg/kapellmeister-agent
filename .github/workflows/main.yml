@@ -1,5 +1,4 @@
 # This is a basic workflow to help you get started with Actions
-
 name: kapellmeister-agent CI
 
 # Controls when the workflow will run
@@ -18,18 +17,17 @@ jobs:
   buildx:
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v2
-      -
-        name: Set up Docker Buildx
+
+      - name: Set up Docker Buildx
         id: buildx
         uses: crazy-max/ghaction-docker-buildx@v3
         with:
           buildx-version: latest
           qemu-version: latest
-      -
-        name: Available platforms
+
+      - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
 
       - name: Log in to Docker Hub
@@ -37,9 +35,16 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-      -
-        name: Run Buildx
+
+      - name: Run Buildx
         run: |
-          docker buildx build -t belichberghub/kapellmeister-agent:latest \
+          docker buildx build \
+            --force-rm \
+            --compress \
+            --no-cache \
+            --pull \
+            --progress plain \
             --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x \
-            --push .
+            --push \
+            --tag belichberghub/kapellmeister-agent:latest \
+            .
