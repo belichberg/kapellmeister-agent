@@ -63,7 +63,7 @@ def containers_diff(client: docker.DockerClient, actual: DockerContainer, contai
 
 
 def containers_check(
-        client: docker.DockerClient, containers: List[Container]
+    client: docker.DockerClient, containers: List[Container]
 ) -> Tuple[List[Container], List[Container], List[str]]:
     create: List[Container] = []
     update: List[Container] = []
