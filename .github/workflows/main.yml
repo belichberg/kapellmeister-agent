@@ -7,7 +7,7 @@ on:
   push:
     branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -36,7 +36,22 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Run Buildx
+      - name: Run Buildx on develop
+        if: github.ref_name == 'develop'
+        run: |
+          docker buildx build \
+            --force-rm \
+            --compress \
+            --no-cache \
+            --pull \
+            --progress plain \
+            --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x \
+            --push \
+            --tag belichberghub/kapellmeister-agent:develop \
+            .
+
+      - name: Run Buildx on main
+        if: github.ref_name == 'main'
         run: |
           docker buildx build \
             --force-rm \
