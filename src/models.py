@@ -17,6 +17,7 @@ class ContainerParameters(BaseModel):
     ports: Optional[Dict]
     privileged: Optional[bool]
     cap_add: Optional[List[str]]
+    pid_mode: Optional[str]
 
 
 class Container(BaseModel):
