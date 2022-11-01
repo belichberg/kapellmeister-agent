@@ -38,20 +38,17 @@ def app_main():
             req_name: str = req_container.parameters.name
 
             # login
-            client.login(req_container.auth)
+            if client.login(req_container.auth):
 
-            # check client
-            if client.check(req_container):
-                log.info(f" - Found container '{req_name}' that need to be updated")
+                # check client
+                if client.check(req_container):
+                    log.info(f" - Found container '{req_name}' that need to be updated")
 
-                # remove old container
-                client.remove(req_name)
+                    # remove old container
+                    client.remove(req_name)
 
-                # start new container
-                client.start(req_container)
-
-            # logout
-            client.logout()
+                    # start new container
+                    client.start(req_container)
 
         # remove unknown containers
         if req_containers:
