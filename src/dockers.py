@@ -1,7 +1,9 @@
-from pathlib import Path
-from typing import Dict
+import base64
+import json
+from typing import Dict, List, Tuple
 
 from docker import DockerClient, from_env
+from docker.errors import APIError
 from docker.models.containers import Container
 
 from src.models import Container as ReqContainer
@@ -65,20 +67,22 @@ class DockerContainers:
             # prune unused images
             self.client.images.prune()
 
-    def login(self, auth: str):
+    def login(self, auth: str) -> bool:
+        success: bool = False
+
         # first pass authentication
-        docker_config_path: Path = Path.joinpath(Path.home(), ".docker", "config.json")
+        for registry, username, password in self.registry_credentials(auth):
+            try:
+                # use client to authenticate
+                self.client.login(username=username, password=password, registry=registry, reauth=True)
 
-        if auth:
-            # create a .docker folder
-            Path.joinpath(Path.home(), ".docker").mkdir(parents=True, exist_ok=True)
+                # success
+                success = True
+            except APIError as err:
+                # ignore ex
+                print(f"Login error with registry {registry} and username {username[:8]}...")
 
-            # write auth config
-            docker_config_path.write_text(auth)
-
-    def logout(self):
-        # remove file
-        Path.joinpath(Path.home(), ".docker", "config.json").unlink(missing_ok=True)
+        return success
 
     def start(self, container: ReqContainer):
         try:
@@ -93,3 +97,19 @@ class DockerContainers:
             )
         except Exception as err:
             print(err)
+
+    @staticmethod
+    def registry_credentials(auth: str) -> List[Tuple[str, str, str]]:
+        auths: List = []
+        parsed: Dict = json.loads(auth)
+
+        if "auths" in parsed:
+            for registry, content in parsed["auths"].items():
+                if "auth" in content:
+                    # extract username / password
+                    username, password = base64.b64decode(content["auth"]).decode().split(":")
+
+                    # add to collections
+                    auths.append((registry, username, password))
+
+        return auths
