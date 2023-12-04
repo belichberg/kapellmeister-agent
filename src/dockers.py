@@ -78,7 +78,7 @@ class DockerContainers:
 
                 # success
                 success = True
-            except APIError as err:
+            except APIError:
                 # ignore ex
                 print(f"Login error with registry {registry} and username {username[:8]}...")
 
